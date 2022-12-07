@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/CharlyGrsvd/OCR-Projet-6-Back-End-Piiquante/issues"
   },
-  "homepage": "https://github.com/CharlyGrsvd/OCR-Projet-6-Back-End-Piiquante#readme"
+  "homepage": "https://github.com/CharlyGrsvd/OCR-Projet-6-Back-End-Piiquante#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^6.8.0",
+    "nodemon": "^2.0.20"
+  }
 }
