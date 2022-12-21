@@ -16,7 +16,7 @@ exports.createSauce = (req, res, next) => {
   sauce
     .save()
     .then(() => {
-      res.status(201).json({ message: "Sauce enregistré !" });
+      res.status(201).json({ message: "Sauce enregistrée !" });
     })
     .catch((error) => {
       res.status(400).json({ error });
@@ -57,7 +57,7 @@ exports.modifySauce = (req, res, next) => {
           { _id: req.params.id },
           { ...sauceObject, _id: req.params.id }
         )
-          .then(() => res.status(200).json({ message: "Objet modifié!" }))
+          .then(() => res.status(200).json({ message: "Sauce modifiée!" }))
           .catch((error) => res.status(401).json({ error }));
       }
     })
@@ -76,7 +76,7 @@ exports.deleteSauce = (req, res, next) => {
         fs.unlink(`images/${filename}`, () => {
           Sauce.deleteOne({ _id: req.params.id })
             .then(() => {
-              res.status(200).json({ message: "Objet supprimé !" });
+              res.status(200).json({ message: "Sauce supprimée !" });
             })
             .catch((error) => res.status(401).json({ error }));
         });
@@ -99,37 +99,52 @@ exports.getAllSauce = (req, res, next) => {
     });
 };
 
-// exports.like = (req, res, next) => {
-//   Sauce.findOne({
-//     _id: req.params.id,
-//   })
-//     .then((sauce) => {
-//       if (req.body.like === -1 && sauce.userDisliked(req.body.userId) === -1) {
-//         sauce.dislikes++;
-//         sauce.usersDisliked.push(req.body.userId);
-//         sauce.save();
-//       }
-//       res.status(200).json({message: "Sauce liked"})
-//     })
-//     .catch((error) => {
-//       res.status(400).json({
-//         error: error,
-//       });
-//     });
-//     // .then((sauce) => {
-//     //   switch (req.body.like) {
-//     //     case -1:
-//     //       sauce.dislikes++;
-//     //       sauce.usersDisliked.push(req.body.userId);
-//     //       sauce.save();
-//     //       break;
-//     //     case 0:
-//     //       sauce.dislikes--;
-//     //       sauce.usersDisliked.pop(req.body.userId)
-//     //       basket = basket.filter(
-//     //         (product) =>
-//     //           product.idOfProduct +product.colorOfProduct != productToDelete
-//     //       );
-//     //   }
-//     // });
-// };
+exports.like = (req, res, next) => {
+  let userId = req.body.userId
+  let sauceId = req.params.id
+      switch (req.body.like) {
+        case -1:
+          Sauce.updateOne(
+            { _id: sauceId },
+            { $push: { usersDisliked: userId }, $inc: { dislikes: +1 } }
+          )
+            .then(() => {
+              res.status(200).json({ message: `Dislike` });
+            })
+            .catch((error) => res.status(400).json({ error }));
+          break;
+        case 0:
+          Sauce.findOne({ _id: sauceId })
+            .then((sauce) => {
+              if (sauce.usersLiked.includes(userId)) {
+                Sauce.updateOne(
+                  { _id: sauceId },
+                  { $pull: { usersLiked: userId }, $inc: { likes: -1 } }
+                )
+                  .then(() => res.status(200).json({ message: `Neutral` }))
+                  .catch((error) => res.status(400).json({ error }));
+              }
+              if (sauce.usersDisliked.includes(userId)) {
+                Sauce.updateOne(
+                  { _id: sauceId },
+                  { $pull: { usersDisliked: userId }, $inc: { dislikes: -1 } }
+                )
+                  .then(() => res.status(200).json({ message: `Neutral` }))
+                  .catch((error) => res.status(400).json({ error }));
+              }
+            })
+            .catch((error) => res.status(404).json({ error }));
+          break;
+        case 1:
+          Sauce.updateOne(
+            { _id: sauceId },
+            { $push: { usersLiked: userId }, $inc: { likes: +1 } }
+          )
+            .then(() => res.status(200).json({ message: `J'aime` }))
+            .catch((error) => res.status(400).json({ error }));
+
+          break;
+        default:
+          sauce.save();
+      }
+};
